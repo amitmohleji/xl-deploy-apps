@@ -1,0 +1,84 @@
+################################################################################
+# This is a parametrized template. It must be used as follow:
+# xl apply -f app.yaml --values project=myproject,version=7.0.0
+################################################################################
+---
+apiVersion: xl-deploy/v1
+kind: Applications
+spec:
+- name: Applications/Infrastructures
+  type: core.Directory
+- name: Applications/Infrastructures/Aws
+  type: core.Directory
+- name: !format Applications/Infrastructures/Aws/infrastructure-ecs-%project%
+  type: udm.Application
+- name: !format Applications/Infrastructures/Aws/infrastructure-ecs-%project%/%version%
+  type: udm.DeploymentPackage
+  deployables:
+  - name: allow-access-ecs
+    type: aws.vpc.SecurityGroupSpec
+    securityGroupName: allow-access-ecs
+    description: Permite acceso al puerto 22 y 80
+    region: us-east-1
+    inboundRules:
+    - name: allow-http
+      type: aws.vpc.SecurityGroupInboundRuleSpec
+      protocol: TCP
+      portRange: "80"
+      source: 0.0.0.0/0
+    - name: allow-ssh
+      type: aws.vpc.SecurityGroupInboundRuleSpec
+      protocol: TCP
+      portRange: "22"
+      source: 0.0.0.0/0
+    - name: allow-http-8080
+      type: aws.vpc.SecurityGroupInboundRuleSpec
+      protocol: TCP
+      portRange: "8080"
+      source: 0.0.0.0/0
+  - name: cluster-ecs
+    type: aws.ecs.ClusterSpec
+    clusterName: cluster-ecs
+    region: us-east-1
+  - name: instance-ecs-1
+    type: aws.ecs.ContainerInstanceSpec
+    instanceName: instance-ecs-1
+    region: us-east-1
+    availabilityZone: us-east-1a
+    securityGroup:
+    - Name:allow-access-ecs
+    instanceType: t2.medium
+    clusterName: cluster-ecs
+    iAmRoleARN: arn:aws:iam::390157638997:instance-profile/ecs-role
+    amiId: ami-032564940f9afd5c0
+    keyName: jcla
+  - name: instance-ecs-2
+    type: aws.ecs.ContainerInstanceSpec
+    instanceName: instance-ecs-2
+    region: us-east-1
+    availabilityZone: us-east-1a
+    securityGroup:
+    - Name:allow-access-ecs
+    instanceType: t2.medium
+    clusterName: cluster-ecs
+    iAmRoleARN: arn:aws:iam::390157638997:instance-profile/ecs-role
+    amiId: ami-032564940f9afd5c0
+    keyName: jcla
+  - name: load-balancer-ecs
+    type: aws.elb.ClassicELBSpec
+    loadBalancerName: load-balancer-ecs
+    availabilityZones:
+    - us-east-1a
+    securityGroups:
+    - Name:allow-access-ecs
+    region: us-east-1
+    destroyWaitTime: "200"
+    resourceDissociationWaitTime: "50"
+    connectionSettingIdleTimeout: "60"
+    listeners:
+    - name: listen-port-80
+      type: aws.elb.ClassicListenerSpec
+      loadBalancerPort: "80"
+      protocol: HTTP
+      instanceProtocol: HTTP
+      instancePort: "8080"
