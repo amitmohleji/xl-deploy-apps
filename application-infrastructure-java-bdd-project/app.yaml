@@ -8,16 +8,18 @@ kind: Applications
 spec:
 - name: Applications/Infrastructures
   type: core.Directory
-- name: !format Applications/Infrastructures/infrastructure-%project%
+- name: Applications/Infrastructures/Terraform
+  type: core.Directory
+- name: !format Applications/Infrastructures/Terraform/infrastructure-%project%
   type: udm.Application
-- name: !format Applications/Infrastructures/infrastructure-%project%/%version%
+- name: !format Applications/Infrastructures/Terraform/infrastructure-%project%/%version%
   type: udm.DeploymentPackage
   deployables:
   - name: !format infrastructure-%project%
     type: terraform.Module
     boundTemplates:
-    - !format Applications/Infrastructures/infrastructure-%project%/%version%/template-host-bdd
-    - !format Applications/Infrastructures/infrastructure-%project%/%version%/template-host-front
+    - !format Applications/Infrastructures/Terraform/infrastructure-%project%/%version%/template-host-bdd
+    - !format Applications/Infrastructures/Terraform/infrastructure-%project%/%version%/template-host-front
     automaticDictionary: false
     inputVariables:
       aws_region: '{{aws_region}}'
