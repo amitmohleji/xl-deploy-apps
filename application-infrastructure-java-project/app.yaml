@@ -1,0 +1,39 @@
+################################################################################
+# This is a parametrized template. It must be used as follow:
+# xl apply -f app.yaml --values project=myproject,version=7.0.0
+################################################################################
+---
+apiVersion: xl-deploy/v1
+kind: Applications
+spec:
+- name: Applications/Infrastructures
+  type: core.Directory
+- name: Applications/Infrastructures/Terraform
+  type: core.Directory
+- name: !format Applications/Infrastructures/Terraform/infrastructure-%project%
+  type: udm.Application
+- name: !format Applications/Infrastructures/Terraform/infrastructure-%project%/%version%
+  type: udm.DeploymentPackage
+  deployables:
+  - name: !format infrastructure-%project%
+    type: terraform.Module
+    boundTemplates:
+    - !format Applications/Infrastructures/Terraform/infrastructure-%project%/%version%/template-host-front
+    automaticDictionary: false
+    inputVariables:
+      aws_region: '{{aws_region}}'
+      environment: '{{environment}}'
+      instance_type: '{{instance_type}}'
+      project_name: !format '%project%'
+      public_key_path: '{{public_key_path}}'
+      private_key_path: '{{private_key_path}}'
+    file: !file "artifacts"
+  templates:
+  - name: template-host-front
+    type: template.overthere.SshHost
+    instanceName: !format '%project%-{{%%outputVariables.environment%%}}-front'
+    os: UNIX
+    connectionType: SCP
+    address: '{{%outputVariables.public_ip_front%}}'
+    username: tomcat
+    privateKeyFile: '{{%outputVariables.private_key_path%}}'
