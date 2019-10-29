@@ -1,6 +1,6 @@
 ################################################################################
 # This is a parametrized template. It must be used as follow:
-# xl apply -f app.yaml --values project=myproject,version=7.0.0
+# xl apply -f app.yaml --values project=calculator,version=3.0.0
 ################################################################################
 ---
 apiVersion: xl-deploy/v1
